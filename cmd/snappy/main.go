@@ -21,6 +21,7 @@ func main() {
 	cameraURL := flag.String("camera", "", "URL to camera snapshot, i.e. http://192.168.8.12/snapshot.jpeg")
 	snapshotsDir := flag.String("dir", ".", "path to directory in which snapshots should be stored")
 	frequency := flag.Int("freq", 30, "frequency of taking snapshots (in seconds)")
+	httpPort := flag.Int("port", 8080, "HTTP server port")
 
 	flag.Parse()
 
@@ -41,7 +42,7 @@ func main() {
 		Frequency: time.Duration(*frequency) * time.Second,
 		Handler:   takeSnapshotHandler.Handle,
 	}, logger)
-	httpServer := ports.NewHTTPServer(latestSnapshotHandler)
+	httpServer := ports.NewHTTPServer(*httpPort, latestSnapshotHandler)
 	go func() {
 		defer wg.Done()
 		if err := httpServer.ListenAndServe(); err != nil {

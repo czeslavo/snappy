@@ -1,6 +1,7 @@
 package ports
 
 import (
+	"fmt"
 	"image/jpeg"
 	"net/http"
 
@@ -14,7 +15,7 @@ type HTTPServer struct {
 	getLatestSnapshotHandler application.GetLatestSnapshotHandler
 }
 
-func NewHTTPServer(getLatestSnapshotHandler application.GetLatestSnapshotHandler) *HTTPServer {
+func NewHTTPServer(port int, getLatestSnapshotHandler application.GetLatestSnapshotHandler) *HTTPServer {
 	s := &HTTPServer{
 		mux:                      http.NewServeMux(),
 		getLatestSnapshotHandler: getLatestSnapshotHandler,
@@ -22,7 +23,10 @@ func NewHTTPServer(getLatestSnapshotHandler application.GetLatestSnapshotHandler
 
 	s.mux.Handle("/latest.jpeg", http.HandlerFunc(s.handleLatest))
 
-	s.srv = &http.Server{Handler: s.mux}
+	s.srv = &http.Server{
+		Addr:    fmt.Sprintf(":%d", port),
+		Handler: s.mux,
+	}
 
 	return s
 }
