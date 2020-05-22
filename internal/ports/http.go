@@ -5,23 +5,27 @@ import (
 	"image/jpeg"
 	"net/http"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/czeslavo/snappy/internal/application"
 )
 
 type HTTPServer struct {
-	mux *http.ServeMux
-	srv *http.Server
+	mux    *http.ServeMux
+	srv    *http.Server
+	logger logrus.FieldLogger
 
 	getLatestSnapshotHandler application.GetLatestSnapshotHandler
 }
 
-func NewHTTPServer(port int, getLatestSnapshotHandler application.GetLatestSnapshotHandler) *HTTPServer {
+func NewHTTPServer(port int, getLatestSnapshotHandler application.GetLatestSnapshotHandler, logger logrus.FieldLogger) *HTTPServer {
 	s := &HTTPServer{
 		mux:                      http.NewServeMux(),
 		getLatestSnapshotHandler: getLatestSnapshotHandler,
+		logger:                   logger,
 	}
 
-	s.mux.Handle("/latest.jpeg", http.HandlerFunc(s.handleLatest))
+	s.mux.Handle("/snapshots/latest.jpeg", http.HandlerFunc(s.handleLatest))
 
 	s.srv = &http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
@@ -46,8 +50,9 @@ func (s *HTTPServer) handleLatest(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	resp.Header().Add("taken_at", snapshot.TakenAt().String())
 	if err := jpeg.Encode(resp, snapshot.Image(), nil); err != nil {
-		http.Error(resp, err.Error(), http.StatusInternalServerError)
+		s.logger.WithError(err).Warning("Snapshot encoding failed")
 		return
 	}
 }

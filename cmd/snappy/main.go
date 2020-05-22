@@ -42,7 +42,7 @@ func main() {
 		Frequency: time.Duration(*frequency) * time.Second,
 		Handler:   takeSnapshotHandler.Handle,
 	}, logger)
-	httpServer := ports.NewHTTPServer(*httpPort, latestSnapshotHandler)
+	httpServer := ports.NewHTTPServer(*httpPort, latestSnapshotHandler, logger)
 	go func() {
 		defer wg.Done()
 		if err := httpServer.ListenAndServe(); err != nil {
