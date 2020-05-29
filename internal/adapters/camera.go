@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/czeslavo/snappy/internal/service/config"
+
 	"github.com/czeslavo/snappy/internal/domain"
 )
 
@@ -17,7 +19,7 @@ type JPEGCamera struct {
 	url    string
 }
 
-func NewJPEGCamera(client *http.Client, url string) (JPEGCamera, error) {
+func NewJPEGCamera(client *http.Client, url config.CameraURL) (JPEGCamera, error) {
 	if client == nil {
 		return JPEGCamera{}, errors.New("empty client")
 	}
@@ -27,7 +29,7 @@ func NewJPEGCamera(client *http.Client, url string) (JPEGCamera, error) {
 
 	return JPEGCamera{
 		client: client,
-		url:    url,
+		url:    string(url),
 	}, nil
 }
 

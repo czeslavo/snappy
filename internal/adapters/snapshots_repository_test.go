@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/czeslavo/snappy/internal/service/config"
+
 	"github.com/czeslavo/snappy/internal/adapters"
 	"github.com/czeslavo/snappy/internal/domain"
 	"github.com/stretchr/testify/require"
@@ -13,7 +15,7 @@ import (
 
 func TestSnapshotsFileSystemRepository(t *testing.T) {
 	tempDir := os.TempDir()
-	repo, err := adapters.NewSnapshotsFileSystemRepository(tempDir)
+	repo, err := adapters.NewSnapshotsFileSystemRepository(config.SnapshotsDirectory(tempDir))
 	require.NoError(t, err)
 
 	snapshot := domain.MustNewSnapshot(image.NewGray(image.Rect(0, 0, 200, 200)), time.Now())

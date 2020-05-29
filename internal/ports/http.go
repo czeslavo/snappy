@@ -5,6 +5,8 @@ import (
 	"image/jpeg"
 	"net/http"
 
+	"github.com/czeslavo/snappy/internal/service/config"
+
 	"github.com/sirupsen/logrus"
 
 	"github.com/czeslavo/snappy/internal/application"
@@ -18,7 +20,7 @@ type HTTPServer struct {
 	getLatestSnapshotHandler application.GetLatestSnapshotHandler
 }
 
-func NewHTTPServer(port int, getLatestSnapshotHandler application.GetLatestSnapshotHandler, logger logrus.FieldLogger) *HTTPServer {
+func NewHTTPServer(port config.HTTPPort, getLatestSnapshotHandler application.GetLatestSnapshotHandler, logger logrus.FieldLogger) *HTTPServer {
 	s := &HTTPServer{
 		mux:                      http.NewServeMux(),
 		getLatestSnapshotHandler: getLatestSnapshotHandler,

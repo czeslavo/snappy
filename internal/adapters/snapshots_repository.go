@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/czeslavo/snappy/internal/service/config"
+
 	"github.com/czeslavo/snappy/internal/domain"
 )
 
@@ -18,7 +20,8 @@ type SnapshotsFileSystemRepository struct {
 	rootDir string
 }
 
-func NewSnapshotsFileSystemRepository(rootDir string) (SnapshotsFileSystemRepository, error) {
+func NewSnapshotsFileSystemRepository(snapshotsDir config.SnapshotsDirectory) (SnapshotsFileSystemRepository, error) {
+	rootDir := string(snapshotsDir)
 	info, err := os.Stat(rootDir)
 	if err != nil {
 		return SnapshotsFileSystemRepository{}, fmt.Errorf("could not stat root dir: %s", err)
