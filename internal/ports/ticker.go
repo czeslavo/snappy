@@ -39,7 +39,6 @@ func NewTicker(takeSnaphotHandler application.TakeSnapshotHandler, conf config.C
 
 func (t *Ticker) Run(ctx context.Context) error {
 	t.handleWithTicker(ctx, t.takeSnapshotHandler.Frequency, t.takeSnapshotHandler.Handler)
-
 	t.wg.Wait()
 	return nil
 }
@@ -58,9 +57,9 @@ func (t *Ticker) handleWithTicker(ctx context.Context, tick time.Duration, handl
 	}
 
 	t.wg.Add(1)
-	ticker := time.NewTicker(tick)
-	defer ticker.Stop()
 	go func() {
+		ticker := time.NewTicker(tick)
+		defer ticker.Stop()
 		for {
 			select {
 			case <-ticker.C:

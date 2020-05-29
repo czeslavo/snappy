@@ -21,7 +21,7 @@ type Config struct {
 
 func ReadConfigFromEnv() (Config, error) {
 	cameraURL := requireEnv("CAMERA_URL")
-	snapshotsDir := getEnv("SNAPSHOTS_DIR", ".")
+	snapshotsDir := getEnv("SNAPSHOTS_DIRECTORY", ".")
 	snapshotsFrequency := getInt("SNAPSHOTS_FREQUENCY", 30)
 	httpPort := getInt("HTTP_PORT", 8080)
 

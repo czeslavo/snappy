@@ -12,6 +12,7 @@ import (
 	"github.com/czeslavo/snappy/internal/service/config"
 	"github.com/sirupsen/logrus"
 	"net/http"
+	"os"
 )
 
 // Injectors from wire.go:
@@ -42,6 +43,7 @@ func BuildService() (*Service, error) {
 		HttpServer: httpServer,
 		Ticker:     ticker,
 		Logger:     fieldLogger,
+		Config:     configConfig,
 	}
 	return service, nil
 }
@@ -53,5 +55,16 @@ var (
 // wire.go:
 
 func provideLogger() logrus.FieldLogger {
-	return logrus.New()
+	level := logrus.DebugLevel
+	if env := os.Getenv("LOG_LEVEL"); env != "" {
+		l, err := logrus.ParseLevel(os.Getenv("LOG_LEVEL"))
+		if err == nil {
+			level = l
+		}
+	}
+
+	logger := logrus.New()
+	logger.SetLevel(level)
+
+	return logger
 }

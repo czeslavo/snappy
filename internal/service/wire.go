@@ -4,6 +4,7 @@ package service
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/czeslavo/snappy/internal/adapters"
 	"github.com/czeslavo/snappy/internal/application"
@@ -19,6 +20,7 @@ func BuildService() (*Service, error) {
 			"HTTPServer",
 			"Ticker",
 			"Logger",
+			"Config",
 		),
 
 		provideLogger,
@@ -47,5 +49,16 @@ func BuildService() (*Service, error) {
 }
 
 func provideLogger() logrus.FieldLogger {
-	return logrus.New()
+	level := logrus.DebugLevel
+	if env := os.Getenv("LOG_LEVEL"); env != "" {
+		l, err := logrus.ParseLevel(os.Getenv("LOG_LEVEL"))
+		if err == nil {
+			level = l
+		}
+	}
+
+	logger := logrus.New()
+	logger.SetLevel(level)
+
+	return logger
 }
