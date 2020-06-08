@@ -68,6 +68,10 @@ func (s FileSnapshot) TakenAt() time.Time {
 	return s.takenAt
 }
 
+func (s FileSnapshot) Path() string {
+	return s.path
+}
+
 func (s FileSnapshot) Copy(w io.Writer) error {
 	f, err := os.Open(s.path)
 	if err != nil {

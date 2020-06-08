@@ -19,6 +19,10 @@ type Config struct {
 	SnapshotsFrequency SnapshotsFrequency
 	HTTPPort           HTTPPort
 	ArchivingFrequency ArchivingFrequency
+	FtpUsername        string
+	FtpPassword        string
+	FtpTargetDirectory string
+	FtpHost            string
 }
 
 func ReadConfigFromEnv() (Config, error) {
@@ -27,6 +31,10 @@ func ReadConfigFromEnv() (Config, error) {
 	snapshotsFrequency := getInt("SNAPSHOTS_FREQUENCY", 30)
 	httpPort := getInt("HTTP_PORT", 8080)
 	archivingFrequency := getInt("ARCHIVING_FREQUENCY", 24)
+	ftpUsername := requireEnv("FTP_USERNAME")
+	ftpPassword := requireEnv("FTP_PASSWORD")
+	ftpTargetDir := getEnv("FTP_TARGET_DIRECTORY", "snapshots")
+	ftpHost := requireEnv("FTP_HOST")
 
 	return Config{
 		CameraURL:          CameraURL(cameraURL),
@@ -34,6 +42,10 @@ func ReadConfigFromEnv() (Config, error) {
 		SnapshotsFrequency: SnapshotsFrequency(time.Second * time.Duration(snapshotsFrequency)),
 		HTTPPort:           HTTPPort(httpPort),
 		ArchivingFrequency: ArchivingFrequency(time.Minute * time.Duration(archivingFrequency)),
+		FtpUsername:        ftpUsername,
+		FtpPassword:        ftpPassword,
+		FtpTargetDirectory: ftpTargetDir,
+		FtpHost:            ftpHost,
 	}, nil
 }
 

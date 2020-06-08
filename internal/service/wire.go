@@ -39,11 +39,13 @@ func BuildService() (*Service, error) {
 		wire.Bind(new(application.Camera), new(adapters.JPEGCamera)),
 		wire.Bind(new(application.AllSnapshotsRepository), new(adapters.SnapshotsFileSystemRepository)),
 		wire.Bind(new(application.SnapshotsArchiver), new(adapters.ZipSnapshotsArchiver)),
+		wire.Bind(new(application.ArchiveUploader), new(adapters.FtpUploader)),
 
 		adapters.NewJPEGCamera,
 		wire.Value(&http.Client{}),
 		adapters.NewSnapshotsFileSystemRepository,
 		adapters.NewZipSnapshotArchiver,
+		provideFtpUploader,
 
 		application.NewGetLatestSnapshotHandler,
 		application.NewTakeSnapshotHandler,
@@ -65,4 +67,11 @@ func provideLogger() logrus.FieldLogger {
 	logger.SetLevel(level)
 
 	return logger
+}
+
+func provideFtpUploader(conf config.Config, logger logrus.FieldLogger) adapters.FtpUploader {
+	return adapters.NewFtpUploader(adapters.Credentials{
+		Username: conf.FtpUsername,
+		Password: conf.FtpPassword,
+	}, conf.FtpHost, conf.FtpTargetDirectory, logger)
 }

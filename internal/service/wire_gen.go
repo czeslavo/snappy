@@ -37,9 +37,10 @@ func BuildService() (*Service, error) {
 	if err != nil {
 		return nil, err
 	}
-	takeSnapshotHandler := application.NewTakeSnapshotHandler(jpegCamera, snapshotsFileSystemRepository)
+	takeSnapshotHandler := application.NewTakeSnapshotHandler(jpegCamera, snapshotsFileSystemRepository, fieldLogger)
 	zipSnapshotsArchiver := adapters.NewZipSnapshotArchiver()
-	archiveAllSnapshotsHandler := application.NewArchiveAllSnapshotsHandler(snapshotsFileSystemRepository, zipSnapshotsArchiver, fieldLogger)
+	ftpUploader := provideFtpUploader(configConfig, fieldLogger)
+	archiveAllSnapshotsHandler := application.NewArchiveAllSnapshotsHandler(snapshotsFileSystemRepository, zipSnapshotsArchiver, ftpUploader, fieldLogger)
 	ticker := ports.NewTicker(takeSnapshotHandler, archiveAllSnapshotsHandler, configConfig, fieldLogger)
 	service := &Service{
 		HttpServer: httpServer,
@@ -69,4 +70,11 @@ func provideLogger() logrus.FieldLogger {
 	logger.SetLevel(level)
 
 	return logger
+}
+
+func provideFtpUploader(conf config.Config, logger logrus.FieldLogger) adapters.FtpUploader {
+	return adapters.NewFtpUploader(adapters.Credentials{
+		Username: conf.FtpUsername,
+		Password: conf.FtpPassword,
+	}, conf.FtpHost, conf.FtpTargetDirectory, logger)
 }
