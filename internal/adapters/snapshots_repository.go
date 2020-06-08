@@ -33,7 +33,7 @@ func NewSnapshotsFileSystemRepository(snapshotsDir config.SnapshotsDirectory) (S
 	return SnapshotsFileSystemRepository{rootDir}, nil
 }
 
-func (r SnapshotsFileSystemRepository) Store(snapshot domain.Snapshot) (err error) {
+func (r SnapshotsFileSystemRepository) Store(snapshot domain.LoadedSnapshot) (err error) {
 	path := r.snapshotPath(snapshot)
 	out, err := os.Create(path)
 	if err != nil {
@@ -50,39 +50,57 @@ func (r SnapshotsFileSystemRepository) Store(snapshot domain.Snapshot) (err erro
 	return nil
 }
 
-func (r SnapshotsFileSystemRepository) GetLatest() (domain.Snapshot, error) {
+func (r SnapshotsFileSystemRepository) GetAll() ([]domain.FileSnapshot, error) {
 	files, err := filepath.Glob(r.rootDir + "/*.jpeg")
 	if err != nil {
-		return domain.Snapshot{}, fmt.Errorf("failed to glob files in root directory: %s", err)
+		return nil, fmt.Errorf("failed to glob files in root directory: %s", err)
+	}
+
+	var snaps []domain.FileSnapshot
+	for _, f := range files {
+		filename := filepath.Base(f)
+		takenTime, err := r.extractTakenTimeFromSnapshotFilename(filename)
+		if err != nil {
+			return nil, fmt.Errorf("could not extract taken time: %s", err)
+		}
+		snap, err := domain.NewFileSnapshot(f, takenTime)
+		if err != nil {
+			return nil, fmt.Errorf("could not create file snapshot: %s", err)
+		}
+
+		snaps = append(snaps, snap)
+	}
+
+	return snaps, nil
+}
+
+func (r SnapshotsFileSystemRepository) GetLatest() (domain.LoadedSnapshot, error) {
+	files, err := filepath.Glob(r.rootDir + "/*.jpeg")
+	if err != nil {
+		return domain.LoadedSnapshot{}, fmt.Errorf("failed to glob files in root directory: %s", err)
 	}
 	if len(files) < 1 {
-		return domain.Snapshot{}, errors.New("no latest snapshot available")
+		return domain.LoadedSnapshot{}, errors.New("no latest snapshot available")
 	}
 
 	sort.Strings(files)
 
 	latestPath := files[len(files)-1]
-	latest, err := os.Open(latestPath)
-	if err != nil {
-		return domain.Snapshot{}, fmt.Errorf("could not open latest snapshot file: %s", err)
-	}
-	defer latest.Close()
-
-	img, err := jpeg.Decode(latest)
-	if err != nil {
-		return domain.Snapshot{}, fmt.Errorf("could not decode image: %s", err)
-	}
-
 	latestFilename := filepath.Base(latestPath)
 	takenTime, err := r.extractTakenTimeFromSnapshotFilename(latestFilename)
 	if err != nil {
-		return domain.Snapshot{}, fmt.Errorf("could not extract taken time from filename: %s", err)
+		return domain.LoadedSnapshot{}, fmt.Errorf("could not extract taken time from filename: %s", err)
 	}
 
-	return domain.NewSnapshot(img, takenTime)
+	snap, err := domain.NewFileSnapshot(latestPath, takenTime)
+	if err != nil {
+		return domain.LoadedSnapshot{}, fmt.Errorf("could not create file snapshot: %s", err)
+	}
+
+	return snap.Load()
 }
 
-func (r SnapshotsFileSystemRepository) snapshotPath(s domain.Snapshot) string {
+func (r SnapshotsFileSystemRepository) snapshotPath(s domain.LoadedSnapshot) string {
 	filename := strconv.Itoa(int(s.TakenAt().Unix())) + ".jpeg"
 	return filepath.Join(r.rootDir, filename)
 }
@@ -98,17 +116,17 @@ func (r SnapshotsFileSystemRepository) extractTakenTimeFromSnapshotFilename(file
 }
 
 type SnapshotsInMemoryRepository struct {
-	snapshots []domain.Snapshot
+	snapshots []domain.LoadedSnapshot
 }
 
-func (r *SnapshotsInMemoryRepository) Store(snapshot domain.Snapshot) error {
+func (r *SnapshotsInMemoryRepository) Store(snapshot domain.LoadedSnapshot) error {
 	r.snapshots = append(r.snapshots, snapshot)
 	return nil
 }
 
-func (r *SnapshotsInMemoryRepository) GetLatest() (domain.Snapshot, error) {
+func (r *SnapshotsInMemoryRepository) GetLatest() (domain.LoadedSnapshot, error) {
 	if len(r.snapshots) < 1 {
-		return domain.Snapshot{}, errors.New("no latest snapshot available")
+		return domain.LoadedSnapshot{}, errors.New("no latest snapshot available")
 	}
 
 	return r.snapshots[len(r.snapshots)-1], nil

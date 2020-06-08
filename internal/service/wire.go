@@ -37,13 +37,17 @@ func BuildService() (*Service, error) {
 		wire.Bind(new(application.LatestSnapshotRepo), new(adapters.SnapshotsFileSystemRepository)),
 		wire.Bind(new(application.SnapshotsRepository), new(adapters.SnapshotsFileSystemRepository)),
 		wire.Bind(new(application.Camera), new(adapters.JPEGCamera)),
+		wire.Bind(new(application.AllSnapshotsRepository), new(adapters.SnapshotsFileSystemRepository)),
+		wire.Bind(new(application.SnapshotsArchiver), new(adapters.ZipSnapshotsArchiver)),
 
 		adapters.NewJPEGCamera,
 		wire.Value(&http.Client{}),
 		adapters.NewSnapshotsFileSystemRepository,
+		adapters.NewZipSnapshotArchiver,
 
 		application.NewGetLatestSnapshotHandler,
 		application.NewTakeSnapshotHandler,
+		application.NewArchiveAllSnapshotsHandler,
 	)
 	return &Service{}, nil
 }

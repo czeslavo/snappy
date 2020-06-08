@@ -38,7 +38,9 @@ func BuildService() (*Service, error) {
 		return nil, err
 	}
 	takeSnapshotHandler := application.NewTakeSnapshotHandler(jpegCamera, snapshotsFileSystemRepository)
-	ticker := ports.NewTicker(takeSnapshotHandler, configConfig, fieldLogger)
+	zipSnapshotsArchiver := adapters.NewZipSnapshotArchiver()
+	archiveAllSnapshotsHandler := application.NewArchiveAllSnapshotsHandler(snapshotsFileSystemRepository, zipSnapshotsArchiver, fieldLogger)
+	ticker := ports.NewTicker(takeSnapshotHandler, archiveAllSnapshotsHandler, configConfig, fieldLogger)
 	service := &Service{
 		HttpServer: httpServer,
 		Ticker:     ticker,

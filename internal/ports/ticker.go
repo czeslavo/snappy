@@ -19,18 +19,28 @@ type TickerHandler struct {
 type TickerHandlerFunc func(ctx context.Context, now time.Time) error
 
 type Ticker struct {
-	takeSnapshotHandler TickerHandler
+	takeSnapshotHandler        TickerHandler
+	archiveAllSnapshotsHandler TickerHandler
 
 	logger logrus.FieldLogger
 	close  chan struct{}
 	wg     sync.WaitGroup
 }
 
-func NewTicker(takeSnaphotHandler application.TakeSnapshotHandler, conf config.Config, logger logrus.FieldLogger) *Ticker {
+func NewTicker(
+	takeSnaphotHandler application.TakeSnapshotHandler,
+	archiveAllSnapshotsHandler application.ArchiveAllSnapshotsHandler,
+	conf config.Config,
+	logger logrus.FieldLogger,
+) *Ticker {
 	return &Ticker{
 		takeSnapshotHandler: TickerHandler{
 			Frequency: time.Duration(conf.SnapshotsFrequency),
 			Handler:   takeSnaphotHandler.Handle,
+		},
+		archiveAllSnapshotsHandler: TickerHandler{
+			Frequency: time.Duration(conf.ArchivingFrequency),
+			Handler:   archiveAllSnapshotsHandler.Handle,
 		},
 		logger: logger,
 		close:  make(chan struct{}),
@@ -39,6 +49,7 @@ func NewTicker(takeSnaphotHandler application.TakeSnapshotHandler, conf config.C
 
 func (t *Ticker) Run(ctx context.Context) error {
 	t.handleWithTicker(ctx, t.takeSnapshotHandler.Frequency, t.takeSnapshotHandler.Handler)
+	t.handleWithTicker(ctx, t.archiveAllSnapshotsHandler.Frequency, t.archiveAllSnapshotsHandler.Handler)
 	t.wg.Wait()
 	return nil
 }

@@ -19,7 +19,7 @@ func TestTakeSnapshotHandler(t *testing.T) {
 		now,
 	)
 	camera := &adapters.CameraMock{
-		Snapshots: []domain.Snapshot{expectedSnap},
+		Snapshots: []domain.LoadedSnapshot{expectedSnap},
 	}
 	repo := &adapters.SnapshotsInMemoryRepository{}
 	handler := application.NewTakeSnapshotHandler(camera, repo)

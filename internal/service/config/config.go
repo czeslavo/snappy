@@ -11,12 +11,14 @@ type CameraURL string
 type SnapshotsDirectory string
 type SnapshotsFrequency time.Duration
 type HTTPPort int
+type ArchivingFrequency time.Duration
 
 type Config struct {
 	CameraURL          CameraURL
 	SnapshotsDirectory SnapshotsDirectory
 	SnapshotsFrequency SnapshotsFrequency
 	HTTPPort           HTTPPort
+	ArchivingFrequency ArchivingFrequency
 }
 
 func ReadConfigFromEnv() (Config, error) {
@@ -24,12 +26,14 @@ func ReadConfigFromEnv() (Config, error) {
 	snapshotsDir := getEnv("SNAPSHOTS_DIRECTORY", ".")
 	snapshotsFrequency := getInt("SNAPSHOTS_FREQUENCY", 30)
 	httpPort := getInt("HTTP_PORT", 8080)
+	archivingFrequency := getInt("ARCHIVING_FREQUENCY", 24)
 
 	return Config{
 		CameraURL:          CameraURL(cameraURL),
 		SnapshotsDirectory: SnapshotsDirectory(snapshotsDir),
 		SnapshotsFrequency: SnapshotsFrequency(time.Second * time.Duration(snapshotsFrequency)),
 		HTTPPort:           HTTPPort(httpPort),
+		ArchivingFrequency: ArchivingFrequency(time.Minute * time.Duration(archivingFrequency)),
 	}, nil
 }
 

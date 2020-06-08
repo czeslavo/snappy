@@ -7,7 +7,7 @@ import (
 )
 
 type LatestSnapshotRepo interface {
-	GetLatest() (domain.Snapshot, error)
+	GetLatest() (domain.LoadedSnapshot, error)
 }
 
 type GetLatestSnapshotHandler struct {
@@ -18,6 +18,6 @@ func NewGetLatestSnapshotHandler(repo LatestSnapshotRepo) GetLatestSnapshotHandl
 	return GetLatestSnapshotHandler{repo}
 }
 
-func (h GetLatestSnapshotHandler) Execute(ctx context.Context) (domain.Snapshot, error) {
+func (h GetLatestSnapshotHandler) Execute(ctx context.Context) (domain.LoadedSnapshot, error) {
 	return h.repo.GetLatest()
 }
